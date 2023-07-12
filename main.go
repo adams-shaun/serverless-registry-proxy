@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    https://www.apache.org/licenses/LICENSE-2.0
+	https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,8 +34,8 @@ const (
 )
 
 var (
-	re                 = regexp.MustCompile(`^/v2/`)
-	realm              = regexp.MustCompile(`realm="(.*?)"`)
+	re    = regexp.MustCompile(`^/v2/`)
+	realm = regexp.MustCompile(`realm="(.*?)"`)
 )
 
 type myContextKey string
@@ -148,11 +148,12 @@ func tokenProxyHandler(tokenEndpoint, repoPrefix string) http.HandlerFunc {
 
 			q := r.URL.Query()
 			scope := q.Get("scope")
-			if scope == "" {
-				return
+			var newScope string
+			if scope != "" {
+				newScope = strings.Replace(scope, "repository:", fmt.Sprintf("repository:%s/", repoPrefix), 1)
+				q.Set("scope", newScope)
 			}
-			newScope := strings.Replace(scope, "repository:", fmt.Sprintf("repository:%s/", repoPrefix), 1)
-			q.Set("scope", newScope)
+
 			u, _ := url.Parse(tokenEndpoint)
 			u.RawQuery = q.Encode()
 			r.URL = u
@@ -235,7 +236,9 @@ func (rrt *registryRoundtripper) RoundTrip(req *http.Request) (*http.Response, e
 }
 
 // updateTokenEndpoint modifies the response header like:
-//    Www-Authenticate: Bearer realm="https://auth.docker.io/token",service="registry.docker.io"
+//
+//	Www-Authenticate: Bearer realm="https://auth.docker.io/token",service="registry.docker.io"
+//
 // to point to the https://host/token endpoint to force using local token
 // endpoint proxy.
 func updateTokenEndpoint(resp *http.Response, host string) {
